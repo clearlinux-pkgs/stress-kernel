@@ -1,0 +1,32 @@
+--- drivers/nfstest.sh.save	2003-01-28 16:51:31.000000000 -0500
++++ drivers/nfstest.sh	2003-01-28 16:52:51.000000000 -0500
+@@ -229,10 +229,11 @@
+     cat > $EXPORTS_FILE <<EOF
+ # /etc/exports
+ #
+-# Async is the default behaviour.  Does this help stress testing?
++# Async is the default behaviour.  Use sync instead.  This *might* fix the
++# annoying "Possible failure" responses during NFS compiles.
+ #
+-$SOURCE0	$HOST(rw,no_root_squash,async)
+-$SOURCE1        $HOST(rw,no_root_squash,async)
++$SOURCE0	$HOST(rw,no_root_squash,sync)
++$SOURCE1        $HOST(rw,no_root_squash,sync)
+ EOF
+ } ; 
+ 
+@@ -246,10 +247,11 @@
+     } ; fi
+     cat >> $EXPORTS_FILE <<EOF
+ #
+-# Async is the default behaviour.  Does this help stress testing?
++# Async is the default behaviour.  Use sync instead.  This *might* fix the
++# annoying "Possible failure" responses during NFS compiles.
+ #
+-$SOURCE0	$HOST(rw,no_root_squash,async)
+-$SOURCE1        $HOST(rw,no_root_squash,async)
++$SOURCE0	$HOST(rw,no_root_squash,sync)
++$SOURCE1        $HOST(rw,no_root_squash,sync)
+ EOF
+ } ; fi
+ 

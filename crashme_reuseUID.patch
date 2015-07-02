@@ -1,0 +1,38 @@
+diff -uNr stress-kernel/drivers/crashme_driver.sh stress-kernel-foo/drivers/crashme_driver.sh
+--- drivers/crashme_driver.sh	Mon Nov 26 11:28:46 2001
++++ drivers-foo/crashme_driver.sh	Mon Nov 26 11:44:35 2001
+@@ -25,19 +25,28 @@
+ # We start looking for an unused uid at $START_UID
+ #
+ CRASHER_NAME="crashme"
+-CRASHER_PASSWD="$1$F1o51gmr$xKg3eYEDSgIvZx5WdKOIc."
++CRASHER_PASSWD='$1$F1o51gmr$xKg3eYEDSgIvZx5WdKOIc.'
+ CRASHER_UID=40000 
+ 
+ EXISTS=`grep "$CRASHER_UID" /etc/passwd`
+ while [ "$EXISTS" ] ; do
+-    CRASHER_UID = `expr $CRASHER_UID + 1`
++    CRASHER_UID=`expr $CRASHER_UID + 1`
+     EXISTS=`grep $CRASHER_UID /etc/passwd`
+ done
+ 
+-/usr/sbin/useradd -d /tmp -p "$CRASHER_PASSWD" -s /bin/bash \
+-    -u "$CRASHER_UID" "$CRASHER_NAME"
+-[ $? -eq 0 ] || { echo "Can't create crashme user with uid $CRASHER_UID" ; \
+-    exit 1 ; }
++# If the crashme_user already exists (for example, if the kernel
++# oopsed on a previous test run) we don't need to create a crashme
++# user.
++
++CRASHER_EXISTS=`grep "$CRASHER_NAME" /etc/passwd`
++if [ -z "$CRASHER_EXISTS" ] ; then
++
++    /usr/sbin/useradd -d /tmp -p "$CRASHER_PASSWD" -s /bin/bash \
++	-u "$CRASHER_UID" "$CRASHER_NAME"
++    [ $? -eq 0 ] || { echo "Can't create crashme user with uid $CRASHER_UID" ; \
++	exit 1 ; }
++
++fi
+ 
+ trap cleanup SIGINT SIGHUP SIGTERM
+ 

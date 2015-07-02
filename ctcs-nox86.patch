@@ -1,0 +1,77 @@
+--- ctcs-1.2.15/runin/src/crashme/crashme.c.foo	Wed Mar 21 17:11:11 2001
++++ ctcs-1.2.15/runin/src/crashme/crashme.c	Wed Mar 21 17:11:32 2001
+@@ -261,7 +261,7 @@
+  struct sigaction act;
+  act.sa_handler = func;
+ /* act.sa_mask = SA_NOMASK; */
+-#ifdef linux
++#if defined(linux) && defined(__i386__) 
+  act.sa_restorer = 0;
+ #endif /* linux */
+  act.sa_flags = SA_NOMASK;
+--- ctcs-1.2.15/runin/src/Makefile.foo	Wed Mar 21 17:14:10 2001
++++ ctcs-1.2.15/runin/src/Makefile	Wed Mar 21 17:19:01 2001
+@@ -24,7 +24,7 @@
+ 	sh -c "make -C nbench-byte dist-clean"
+ 	sh -c "make -C ucsc-smartsuite dist-clean"
+ 
+-install: all ;
++install: all;
+ 	cp random ../bin
+ 	cp prandom ../bin
+ 	cp flushb ../bin/flushb.real
+@@ -32,7 +32,7 @@
+ 	cp chartst ..
+ 	cp memtst.src/memtst ../memtst
+ 	sh -c 'if [ -z "$$VA_CERB_NOSMARTSUITE" ] ; then cp ucsc-smartsuite/smartctl ../bin ; fi'
+-	sh -c "make -C cpuburn-1.2 install"
++	sh -c '[ `uname -m | sed "s|[3456]86|386|g"` = "i386" ] && make -C cpuburn-1.2 install || :'
+ 	sh -c "make -C crashme install >> /dev/null 2>&1"
+ 	sh -c "make -C nbench-byte >>/dev/null 2>&1"
+ 
+--- ctcs-1.2.15/runin/kernel.foo	Wed Mar 21 18:15:58 2001
++++ ctcs-1.2.15/runin/kernel	Wed Mar 21 18:18:02 2001
+@@ -116,9 +116,17 @@
+ make -sw clean >> /dev/null
+ if [ $? != 0 ] ; then exit 1 ; fi
+ 
+-echo ]] make bzImage
+-make -sw $makej bzImage >> /dev/null
+-if [ $? != 0 ] ; then exit 1 ; fi
++ARCH=`uname -m | sed "s|[3456]86|386|g"`
++
++if [ "$ARCH" = "i386" ]; then
++ echo ]] make bzImage
++ make -sw $makej bzImage >> /dev/null
++ if [ $? != 0 ] ; then exit 1 ; fi
++else
++ echo ]] make vmlinux
++ make -sw $makej vmlinux >> /dev/null
++ if [ $? != 0 ] ; then exit 1 ; fi
++fi
+ 
+ echo ]] make -j modules
+ make -sw $makej modules >> /dev/null
+--- ctcs-1.2.15/runin/fastkernel.foo	Wed Mar 21 18:16:02 2001
++++ ctcs-1.2.15/runin/fastkernel	Wed Mar 21 18:16:53 2001
+@@ -90,9 +90,17 @@
+ make -sw clean >> /dev/null
+ if [ $? != 0 ] ; then exit 1 ; fi
+ 
+-echo ]] make $makej bzImage
+-make -sw $makej bzImage >> /dev/null
+-if [ $? != 0 ] ; then exit 1 ; fi
++ARCH=`uname -m | sed "s|[3456]86|386|g"`
++
++if [ "$ARCH" = "i386" ]; then
++ echo ]] make $makej bzImage
++ make -sw $makej bzImage >> /dev/null
++ if [ $? != 0 ] ; then exit 1 ; fi
++else
++ echo ]] make $makej vmlinux
++ make -sw $makej vmlinux >> /dev/null
++ if [ $? != 0 ] ; then exit 1 ; fi
++fi
+ 
+ echo ]] make $makej modules
+ make -sw $makej modules >> /dev/null

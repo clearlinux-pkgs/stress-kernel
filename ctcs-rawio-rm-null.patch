@@ -1,0 +1,26 @@
+--- drivers/rawio-driver.sh.orig	Sun Jan 12 14:13:40 2003
++++ drivers/rawio-driver.sh	Tue Jan 14 15:45:55 2003
+@@ -8,19 +8,15 @@
+ RAW_DEVICE=$1
+ BLOCK_DEVICE=$2
+ 
+-trap "rm -rf $TMPFILE >> /dev/null 2>&1; exit 0" SIGINT SIGHUP SIGTERM
++trap "rm -f $TMPFILE; exit 0" SIGINT SIGHUP SIGTERM
+ 
+ TMPFILE=`mktemp "$TMPDIR"/rawio.XXXXXX`
+ [ $? -eq 0 ] || { echo "Can't make temporary file." ; exit -1 ; }
+ 
+ cd rawio >> /dev/null 2>&1
+-[ $? -eq 0 ] || { echo "Can't cd to rawio dir." ; exit -1 ;  }
++[ $? -eq 0 ] || { echo "Can't cd to rawio dir." ; rm -f "$TMPFILE" ; exit -1 ;  }
+ 
+ ./rawio "$RAW_DEVICE" "$BLOCK_DEVICE" "$TMPFILE"
+-[ $? -eq 0 ] || { echo "RAWIO on raw device $RAW_DEVICE failed." ; rm -rf "$TMPFILE" ; exit -1 ; }
+-
+-rm -rf "$TMPFILE" 2>&1 /dev/null
+-[ $? -eq 0 ] || { echo "Could not remove $TMPFILE." ; exit -1 ; }
+-
+-exit 0
++[ $? -eq 0 ] || { echo "RAWIO on raw device $RAW_DEVICE failed." ; rm -f "$TMPFILE" ; exit -1 ; }
+ 
++exit $?

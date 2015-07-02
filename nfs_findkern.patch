@@ -1,0 +1,21 @@
+--- drivers/nfstest.sh.~1~	Thu Jul 19 11:31:02 2001
++++ drivers/nfstest.sh	Wed Nov 14 06:25:15 2001
+@@ -168,6 +168,8 @@
+ #
+ function find_kernel_tree () {
+ 
++[ -e /usr/src/cvs/linux -a \( -L /usr/src/cvs/linux -o -d /usr/src/cvs/linux \) ] \
++    && { SOURCE0="/usr/src/cvs/linux" ; return 0 ; }
+ [ -e /usr/src/linux-2.4 -a \( -L /usr/src/linux-2.4 -o -d /usr/src/linux-2.4 \) ] \
+     && { SOURCE0="/usr/src/linux-2.4" ; return 0 ; }
+ [ -e /usr/src/linux -a \( -L /usr/src/linux -o -d /usr/src/linux \) ] \
+@@ -376,7 +378,8 @@
+ 
+ for I in $SOURCE0/* $SOURCE0/.* ; do {
+     if [ $I != "/usr/src/linux/." -a $I != "/usr/src/linux/.." \
+-	-a $I != "/usr/src/linux-2.4/." -a $I != "/usr/src/linux-2.4/.." ] ; then {
++	-a $I != "/usr/src/linux-2.4/." -a $I != "/usr/src/linux-2.4/.." \
++        -a $I != "/usr/src/cvs/linux/." -a $I != "/usr/src/cvs/linux/.." ] ; then {
+ 	cp -pRd "$I" "$TARGET1" >> /dev/null 2>&1
+ 	if [ $? -ne 0 ] ; then {
+ 	    ERROR_MSG="Copy to server failed."

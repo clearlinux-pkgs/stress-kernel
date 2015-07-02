@@ -1,0 +1,96 @@
+diff -uNr stress-kernel/fs/Makefile stress-kernel-truncate/fs/Makefile
+--- fs/Makefile	Thu Nov 30 17:57:54 2000
++++ fs.foo/Makefile	Wed Nov 14 11:47:55 2001
+@@ -1,7 +1,10 @@
+ holey: holey.c
+ 	gcc -o holey holey.c
+ 
+-all: holey
++truncate: truncate.c
++	gcc -o truncate truncate.c
++
++all: holey truncate
+ 
+ clean:
+-	rm holey
++	rm holey truncate
+diff -uNr stress-kernel/fs/truncate.c stress-kernel-truncate/fs/truncate.c
+--- fs/truncate.c	Wed Dec 31 19:00:00 1969
++++ fs.foo/truncate.c	Wed Nov 14 11:47:14 2001
+@@ -0,0 +1,45 @@
++/*******************************************
++  Truncate a given file to a specified length
++  
++  Usage:
++  truncate <file_name> <length>
++
++********************************************/
++
++#include <stdio.h>
++#include <fcntl.h>
++
++
++main (int argc, char * argv []) 
++{
++  int fd;
++  off_t pos;
++  char buf [100];
++
++  if (argc != 3) {
++    printf ("Usage: %s [file_name] [length]\n", argv [0]);
++    exit (0);
++  }
++
++  // open existing, or CREATE not existing file
++  if ((fd = open (argv[1], O_RDWR | O_CREAT, 0644)) == -1) {
++    perror ("open failed : ");
++    return 1;
++  }
++
++   pos = (off_t)strtoll( argv [2], NULL, 0);
++
++  if (ftruncate(fd, (off_t)pos) != 0){
++    perror ("truncate failed : ");
++    return 1;
++  }
++
++  /*
++  printf ("Write - ok\n");
++  printf ("%d\n", strlen (argv [3]));
++  */
++
++  printf ("Truncate OK: file: %s tail-byte : % i\n", argv [1], pos);
++  close (fd);
++
++}
+diff -uNr drivers/fs-test-driver.sh drivers.foo/fs-test-driver.sh
+--- drivers/fs-test-driver.sh	Wed May  2 14:50:28 2001
++++ drivers.foo/fs-test-driver.sh	Wed Nov 14 12:01:36 2001
+@@ -128,6 +128,27 @@
+ 
+ rm -rf $EX_FILE_SMALL $EX_FILE_BIG $TEMP_DIR/EXORCIST >> /dev/null 2>&1
+ 
++
++# Han's Reisers truncate test, modified to loop from file size down to zero.
++
++TRUNCATE_FILE=$TEMP_DIR/truncate-$$
++TRUNCATE_SIZE=2097152  # == 2MB
++
++dd if=/dev/urandom of="$TRUNCATE_FILE" bs=1024 count=2048 >> /dev/null
++[ $? = 0 ] || { echo "Error: can not create $FTRUNCATE_FILE for ftruncate test." ; exit -1 ; }
++
++$FS_TEST_HOME_DIR/truncate $TRUNCATE_FILE $TRUNCATE_SIZE &
++
++TRUNCATE_PID=$!
++trap "kill -9 $TRUNCATE_PID ; rm -f $TRUNCATE_FILE" SIGINT SIGTERM SIGHUP
++
++wait
++
++[ $? = 0 ] || { echo "Truncate test returned $?" ; exit -1 ; }
++
++rm -f $TRUNCATE_FILE >> /dev/null
++[ $? = 0 ] || { echo "Can't remove $TRUNCATE_FILE." ; exit -1 ; }
++
+ exit 0
+ 
+ 

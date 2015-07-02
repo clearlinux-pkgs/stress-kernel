@@ -1,0 +1,13 @@
+diff -uNr iotest30/benchmks.c iotest30.hacked/benchmks.c
+--- iotest30/benchmks.c	Mon Sep 27 21:03:26 1999
++++ iotest30.hacked/benchmks.c	Fri Aug 25 15:57:14 2000
+@@ -62,7 +62,8 @@
+     static char *rbuffer[MAX_TRANSFER_SIZE];
+     int rdwr_rand;
+     int rdwr_type;
+-    for (i = 1; i <= (int) max_xfer_size; ++i)
++    /* original: for (i = 1; i <= (int) max_xfer_size; ++i) gives off by one error */
++    for (i = 0; i < (int) max_xfer_size; ++i)
+ 	wrbuffer[i] = (char) i;
+     rdwr_size = min_xfer_size;
+     blocks = blocks - 1;	/*Turn # of blocks into highest block # */

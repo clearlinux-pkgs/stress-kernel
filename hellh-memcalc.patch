@@ -1,0 +1,59 @@
+diff -uNr misc/hell-hound.sh misc.foo/hell-hound.sh
+--- misc/hell-hound.sh	Wed Dec 19 11:08:12 2001
++++ misc.foo/hell-hound.sh	Wed Dec 19 15:56:06 2001
+@@ -60,29 +60,23 @@
+ RAWIO="no"
+ LTP="no"
+ 
+-#Calc total available memory
++
++# Calc total available memory
+ PMEM_KB=`cat /proc/meminfo | grep '^MemTotal:' | sed 's/^[^0-9]*\([0-9]*\).*/\1/'`
+ SWAP_KB=`cat /proc/meminfo | grep '^SwapTotal:' | sed 's/^[^0-9]*\([0-9]*\).*/\1/'`
+ 
+-#
+-# Right now, we let Cerberus allocate RAM + Swap/2.  Bcrl says this
+-# is bogus if Swap < RAM, so we issue a warning message.
+-
+-if [ `echo "$SWAP_KB - ( 2 * $PMEM_KB )" | bc -q` -lt 0 ] ; then {
+-
+-    echo "Warning: Your machine has Swap < 2*RAM.  This is too little"
+-    echo "swap to run Cerberus reliably.  Continue?"
+-
+-    DEFAULT_ANS="no"; yn
+-    DO_IT=$ANSWER_YN
+ 
+-    if [ $DO_IT = "no" ] ; then {
+-	exit 0
+-	} ; fi
++# The maximum amount of memory that testing can possibly use will be: 
++# min (RAM * 1.2, RAM + Swap/2) memory.
++LOTTA_SWAP_MMB=`echo "( $PMEM_KB + ( $SWAP_KB / 2 ) ) / 1024" | bc -q`
++CONSERVATIVE_MMB=`echo "( $PMEM_KB + ( $PMEM_KB / 5 ) ) / 1024" | bc -q`
+ 
+-} ; fi
++if [ "$CONSERVATIVE_MMB" -lt "$LOTTA_SWAP_MMB" ] ; then
++    MMB="$CONSERVATIVE_MMB"
++else
++    MMB="$LOTTA_SWAP_MMB"
++fi
+ 
+-MMB=`echo "( $PMEM_KB + ( $SWAP_KB / 2 ) ) / 1024" | bc -q`
+ 
+ # Reserve 256 MB for the kernel and sys processes on enterprise kernel
+ # Reserve 64 MB on non-enterprise kernels
+@@ -92,12 +86,14 @@
+ 	RESERVE_KERNEL=64
+ fi
+ 
++
+ # Give the user a chance to reserve some additional memory.
+ echo "How much extra memory (in MB) beyond the defaults do you want to reserve? [0] "
+ read RESERVE_EXTRA
+ [ $RESERVE_EXTRA ] || RESERVE_EXTRA=0
+ 
+ 
++# Finally, calculate maximum memory Cerberus will attempt to use.
+ MEM_CEILING=`echo "$MMB - $RESERVE_KERNEL - $RESERVE_EXTRA" | bc -q`
+ echo "Calculating maximum allocable memory =" $MEM_CEILING "MB"
+ 

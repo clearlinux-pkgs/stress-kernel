@@ -1,0 +1,190 @@
+diff -uNr misc/make-tcf.sh misc.foo/make-tcf.sh
+--- misc/make-tcf.sh	Wed Dec 31 19:00:00 1969
++++ misc.foo/make-tcf.sh	Wed Jan 16 11:34:02 2002
+@@ -0,0 +1,186 @@
++#!/bin/sh
++
++CTCS_DRIVER_FILE="./RH-test.tcf"
++
++#
++# Define default testing set for autotest.
++#
++NFS_COMPILE="yes"
++TTCP="yes"
++IDE="no"
++SCSI="no"
++MEMORY="yes"
++FIFO_MMAP="yes"
++P3_FPU="yes"
++FS="yes"
++CRASHME="yes"
++RAWIO="no"
++LTP="yes"
++
++
++# Calc total available memory
++PMEM_KB=`cat /proc/meminfo | grep '^MemTotal:' | sed 's/^[^0-9]*\([0-9]*\).*/\1/'`
++SWAP_KB=`cat /proc/meminfo | grep '^SwapTotal:' | sed 's/^[^0-9]*\([0-9]*\).*/\1/'`
++
++
++# The maximum amount of memory that testing can possibly use will be: 
++# min (RAM * 1.2, RAM + Swap/2) memory.
++LOTTA_SWAP_MMB=`echo "( $PMEM_KB + ( $SWAP_KB / 2 ) ) / 1024" | bc -q`
++CONSERVATIVE_MMB=`echo "( $PMEM_KB + ( $PMEM_KB / 5 ) ) / 1024" | bc -q`
++
++if [ "$CONSERVATIVE_MMB" -lt "$LOTTA_SWAP_MMB" ] ; then
++    MMB="$CONSERVATIVE_MMB"
++else
++    MMB="$LOTTA_SWAP_MMB"
++fi
++
++
++# Reserve 256 MB for the kernel and sys processes on enterprise kernel
++# Reserve 64 MB on non-enterprise kernels
++if [ `uname -r | grep "enterprise"` ] ; then
++	RESERVE_KERNEL=256
++else
++	RESERVE_KERNEL=64
++fi
++
++RESERVE_EXTRA=0
++
++
++# Finally, calculate maximum memory Cerberus will attempt to use.
++MEM_CEILING=`echo "$MMB - $RESERVE_KERNEL - $RESERVE_EXTRA" | bc -q`
++
++#These variables define the amount of memory in MB to reserve for each test.
++SCSI_MEM=8
++TTCP_MEM=1
++NFS_COMPILE_MEM=48
++IDE_MEM=10
++FIFO_MMAP_MEM=206
++P3_FPU_MEM=10
++FS_MEM=352
++CRASHME_MEM=1
++RAWIO_MEM=50
++LTP_MEM=4
++
++
++# 
++# Create the driver file
++#
++rm -rf $CTCS_DRIVER_FILE >> /dev/null 2>&1
++cat > $CTCS_DRIVER_FILE <<EOF
++#
++# This is the ctcs driver file.  This file is auto-created.
++#
++set verbose 1
++EOF
++
++#
++# This is a dummy test which just sleeps for a minute and then
++# writes /proc/ksyms to a safe place.
++#
++cat >> $CTCS_DRIVER_FILE<<EOF
++bg 1 SAVE-STATE save_state.sh
++EOF
++
++if [ $SCSI = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE <<EOF
++bg 1 SCSI-TEST iotest30_driver.sh $SCSI_PARTITION
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$SCSI_MEM"`
++} ; fi
++
++if [ $NFS_COMPILE = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE <<EOF
++bg 4 NFS-COMPILE nfstest.sh
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$NFS_COMPILE_MEM"`
++} ; fi
++
++if [ $TTCP = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 1024 TTCP ttcp_driver.sh localhost localhost
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$TTCP_MEM"`
++} ; fi
++
++if [ $IDE = "yes" ] ; then {
++BLOCKRDTST_ARGS=`./runin/blockrdtst-info "$IDE_PARTITION"`
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 4 IDE blockrdtst $BLOCKRDTST_ARGS
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$IDE_MEM"`
++} ; fi
++
++
++if [ $FIFO_MMAP = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 256 FIFOS_MMAP dt_driver.sh
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$FIFO_MMAP_MEM"`
++} ; fi
++
++if [ $P3_FPU = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 256 P3-FPU P3-stress.sh
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$P3_FPU_MEM"`
++} ; fi
++
++if [ $FS = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 64 FS fs-test-driver.sh
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$FS_MEM"`
++} ; fi
++
++if [ $CRASHME = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 256 CRASHME crashme_driver.sh
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$CRASHME_MEM"`
++} ; fi
++
++if [ $RAWIO = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 1024 RAWIO rawio-driver.sh $RAW_D $BLOCK_D
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$RAWIO_MEM"`
++} ; fi
++
++if [ $LTP = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 256 LTP ltp-driver.sh
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$LTP_MEM"`
++} ; fi
++
++if [ $MEMORY = "yes" ] ; then {
++   
++    if [ "$MEM_CEILING" -le 0 ] ; then {
++	MEMORY="no"
++    } ; else {
++
++	NMEMTEST=0
++	while [ $MEM_CEILING -gt 0 ] ; do {
++	    if [ $MEM_CEILING -lt 1800 ] ; then {
++		TESTUSAGE=$MEM_CEILING
++		MEM_CEILING=0
++	    } ; else {
++		TESTUSAGE=1800
++		MEM_CEILING=`expr $MEM_CEILING - 1800`
++	    } ; fi
++	    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 64 MEMORY$NMEMTEST memtst 32 $TESTUSAGE
++EOF
++	    NMEMTEST=`expr $NMEMTEST + 1`
++	} ; done
++
++    } ; fi
++
++} ; fi
++
++
++cat >> $CTCS_DRIVER_FILE<<EOF
++wait
++exit
++EOF
++

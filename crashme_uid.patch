@@ -1,0 +1,11 @@
+--- drivers/crashme_driver.sh.~1~       Wed Nov 14 13:25:12 2001
++++ drivers/crashme_driver.sh   Fri Nov 16 09:18:18 2001
+@@ -31,7 +31,7 @@
+ EXISTS=`grep "$CRASHER_UID" /etc/passwd`
+ while [ "$EXISTS" ] ; do
+     CRASHER_UID = `expr $CRASHER_UID + 1`
+-    EXISTS=`grep "$CRASHER_UID" /etc/passwd`
++    EXISTS=`grep $CRASHER_UID /etc/passwd`
+ done
+ 
+ /usr/sbin/useradd -d /tmp -p "$CRASHER_PASSWD" -s /bin/bash \

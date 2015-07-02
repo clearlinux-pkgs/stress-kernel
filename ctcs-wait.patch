@@ -1,0 +1,21 @@
+--- ctcs-1.2.15/runin/src/ltp/tests/kill09.c.foo	Tue Feb 18 11:59:15 2003
++++ ctcs-1.2.15/runin/src/ltp/tests/kill09.c	Tue Feb 18 11:59:17 2003
+@@ -226,8 +226,6 @@
+     /* capture signals */
+     tst_sig(NOFORK, DEF_HANDLER, cleanup);
+ 
+-    (void) signal(SIGCHLD, SIG_IGN);
+-
+     /* Pause if that option was specified */
+     TEST_PAUSE;
+ 
+--- ctcs-1.2.15/run.foo	Tue Feb 18 12:01:33 2003
++++ ctcs-1.2.15/run	Tue Feb 18 12:01:46 2003
+@@ -946,7 +946,6 @@
+ 
+ sub enable_handlers {
+ 	$SIG{"ALRM"} = \&ALARM;
+-	$SIG{"CHLD"} = 'IGNORE';
+ 	$SIG{"INT"} = \&DEATHBYSIGNAL;
+ 	$SIG{"TERM"} = \&DEATHBYSIGNAL;
+ 	$SIG{"HUP"} = \&DEATHBYSIGNAL;

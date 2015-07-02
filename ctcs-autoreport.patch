@@ -1,0 +1,108 @@
+diff -uNr misc/autorun.sh misc.foo/autorun.sh
+--- misc/autorun.sh	Wed Dec 31 19:00:00 1969
++++ misc.foo/autorun.sh	Tue Jan 29 13:59:10 2002
+@@ -0,0 +1,104 @@
++#!/bin/sh
++
++#DEBUG=1
++
++# Cerberus home
++CHOME=/usr/bin/ctcs
++
++# Kernel version
++KVER=`uname -r`
++
++# Reporting directory
++REPORT_FILE="/var/autoreportctcs/reports/$KVER"
++
++# Admins' email addresses, one per line
++ADMINS_FILE="/var/autoreportctcs/configs/admins"
++
++TEST_CONTROL_FILE=$1
++
++cd $CHOME
++
++[ $1 ] || { echo "Usage: autorun [test_control_file]" ; }
++
++if [ $DEBUG ] ; then
++    mv "$TEST_CONTROL_FILE" RH-test.tcf.orig
++    cp RH-test.tcf.dummy "$TEST_CONTROL_FILE"
++fi
++
++# Make test control file if one does not exist.
++[ -e "$TEST_CONTROL_FILE" ] || "$CHOME"/make-tcf.sh
++
++# Clean out old logs before proceeding
++rm -rf "$CHOME"/.RH-test.tcf.log*  >> /dev/null 2>&1 
++
++trap "kill -2 `pidof run` ; wait $CERBERUS ; exit 1" SIGINT
++trap "kill -9 `pidof run` ; wait $CERBERUS ; exit 1" SIGHUP SIGQUIT SIGTERM
++
++./run "$TEST_CONTROL_FILE"
++
++CERBERUS_EXIT=$?
++
++# We want a report file, even if there were no errors
++rm -f "$REPORT_FILE" 2> /dev/null
++touch "$REPORT_FILE"
++
++# If there was a failure, scan log files.
++# This is icky, due to the way the different tests log failures.
++# Most just log "fail" or "FAIL".  
++# 
++# We have to special case LTP however , because LTP tests log "fail"
++# even when the tests themselves pass.  It does, luckily, log
++# "FAIL" only on a real failure.
++#
++cd "$CHOME"/.RH-test.tcf.log*/
++for I in `ls -x` ; do
++    cd "$CHOME"/.RH-test.tcf.log*
++    LOG_FILE=`echo "$I" | grep [A-Z]`
++    if [ "$LOG_FILE" -a "$LOG_FILE" != "LTP" ] ; then
++	if grep -i fail "$LOG_FILE" >> /dev/null ; then
++	    echo "*****" >> $REPORT_FILE
++	    echo "$LOG_FILE report" >> $REPORT_FILE
++	    echo "*****" >> $REPORT_FILE
++	    grep -i fail $LOG_FILE >> $REPORT_FILE
++	    echo >> $REPORT_FILE; echo >> $REPORT_FILE; echo >> $REPORT_FILE
++	fi
++    elif [ "$LOG_FILE" -a "$LOG_FILE" = "LTP" ] ; then	
++	if grep FAIL "$LOG_FILE" >> /dev/null ; then
++	    echo "*****" >> $REPORT_FILE
++	    echo "$LOG_FILE report" >> $REPORT_FILE
++	    echo "*****" >> $REPORT_FILE
++	    grep -i fail  $LOG_FILE >> $REPORT_FILE
++	    echo >> $REPORT_FILE; echo >> $REPORT_FILE; echo >> $REPORT_FILE
++	fi
++    fi
++done
++
++echo "***** Messages:" >> $REPORT_FILE
++
++# Locate last bootup message in logs
++LOG_START=`grep -n "Linux version" /var/log/messages | cut -d':' -f1 | tail -1`
++[ "$LOG_START" ] || LOG_START=1
++FILE_LENGTH=`wc -l /var/log/messages | awk '{ print $1 }'`
++
++# Part of /var/log/messages relevant to this run.
++RELEVANT_TAIL=`echo "$FILE_LENGTH" - "$LOG_START" + 1 | bc -q`
++
++# Looking for ext error messages, BUG() messages and oops.
++tail -"$RELEVANT_TAIL" /var/log/messages | grep -i "ext\|eip" >> $REPORT_FILE
++
++echo "*****" >> $REPORT_FILE
++
++# Mail admins
++SUBJECT=`echo Kernel $KVER`
++MACH_NAME=`uname -n`
++if [ "$CERBERUS_EXIT" -ne 0 ] ; then
++    SUBJECT=`echo $SUBJECT: possible failure on `
++else
++    SUBJECT=`echo $SUBJECT passed on `
++fi
++SUBJECT=`echo $SUBJECT $MACH_NAME`
++
++while read ADMIN ; do
++    mail -s "$SUBJECT" "$ADMIN" < "$REPORT_FILE"
++done < $ADMINS_FILE
++

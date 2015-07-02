@@ -1,0 +1,66 @@
+diff -uNr fs/truncate.c fs.foo/truncate.c
+--- fs/truncate.c	Wed Nov 14 11:53:32 2001
++++ fs.foo/truncate.c	Wed Nov 14 11:54:41 2001
+@@ -4,10 +4,17 @@
+   Usage:
+   truncate <file_name> <length>
+ 
++Written by Hans Reiser.
++Modified to loop and check file size with stat by Bob Matthews
++
++
+ ********************************************/
+ 
+ #include <stdio.h>
+ #include <fcntl.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
+ 
+ 
+ main (int argc, char * argv []) 
+@@ -15,6 +22,7 @@
+   int fd;
+   off_t pos;
+   char buf [100];
++  struct stat *stat_buf = (struct stat *) malloc (sizeof (struct stat));
+ 
+   if (argc != 3) {
+     printf ("Usage: %s [file_name] [length]\n", argv [0]);
+@@ -27,19 +35,26 @@
+     return 1;
+   }
+ 
+-   pos = (off_t)strtoll( argv [2], NULL, 0);
++  for (pos = (off_t)strtoll( argv [2], NULL, 0) ; pos >= 0 ; pos-- ) {
+ 
+-  if (ftruncate(fd, (off_t)pos) != 0){
+-    perror ("truncate failed : ");
+-    return 1;
++    if (ftruncate(fd, (off_t)pos) != 0){
++      perror ("truncate failed : ");
++      return 1;
++    }
++    
++    if (fstat (fd, stat_buf) == -1) {
++      perror ("stat failed : ");
++      return 1;
++    }
++    
++    if (stat_buf->st_size != (off_t) pos) {
++      printf ("file size = %d is wrong after ftruncate\n", pos);
++      perror ("ftruncate or stat : ");
++      return 1;
++    }
+   }
+ 
+-  /*
+-  printf ("Write - ok\n");
+-  printf ("%d\n", strlen (argv [3]));
+-  */
++  exit (0);
+ 
+-  printf ("Truncate OK: file: %s tail-byte : % i\n", argv [1], pos);
+-  close (fd);
+ 
+ }

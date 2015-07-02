@@ -1,0 +1,27 @@
+diff -uNr ctcs-1.2.15/runin/src/ltp/tests/getgroups01.c ctcs.foo/runin/src/ltp/tests/getgroups01.c
+--- ctcs-1.2.15/runin/src/ltp/tests/getgroups01.c	Tue Nov 21 19:36:46 2000
++++ ctcs.foo/runin/src/ltp/tests/getgroups01.c	Fri Jan 18 17:28:13 2002
+@@ -47,8 +47,7 @@
+ 		not modified.
+ 	3. Check to see if getgroups(x, gigset) fails and sets errno to EINVAL,
+ 		where x is one less then what is returned by getgroups(0, gidset).
+-	4. Check to see if getgroups() succeeds and gidset contains
++       4. Check to see if getgroups() succeeds.
+-		group id returned from getgid().
+ 
+ INPUT SPECIFICATIONS:
+ 	NONE
+@@ -264,13 +262,6 @@
+ 		}
+ 	    }
+ 
+-	    if( i == entries ) {
+-		sprintf(msg,
+-		    "getgroups(NGROUPS,gidset) ret %d, does not contain gid %d (from getgid)",
+-		    entries, group);
+-		tst_resm(TFAIL,msg);
+-	        errors++;
+-	    }
+ 	}
+ 
+     }

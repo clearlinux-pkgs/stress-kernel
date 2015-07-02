@@ -1,0 +1,38 @@
+diff -uNr stress-kernel/ctcs-1.2.15/run stress-kernel-foo/ctcs-1.2.15/run
+--- ctcs-1.2.15/run	Mon Jan  7 18:34:01 2002
++++ ctcs-1.2.15-foo/run	Tue Jan  8 14:28:15 2002
+@@ -27,6 +27,9 @@
+ use color;
+ use timecalc;
+ 
++# flag to indicate failure of any test
++my $any_failures = 0;
++
+ # tcf being parsed
+ my $filename;
+ 
+@@ -266,7 +269,11 @@
+ 	} else {
+ 		warn ("Test result inconclusive for $key, no results found\n");
+ 	}
+-	
++
++	if ($fail != 0) {
++	    $any_failures = 1;
++	}
++		
+ 	if (defined($test_results{$key}->[0])) {
+ 		$test_results{$key}->[0] +=  $fail;
+ 		$test_results{$key}->[1] +=  $succeed;
+@@ -979,9 +986,11 @@
+ #    setlogmask ("debug");
+     main(("-"));
+     closelog();
++    exit $any_failures;
+ } else {
+     openlog("Cerberus", "", "local7");
+ #    setlogmask ("debug");
+     main(@ARGV);
+     closelog();
++    exit $any_failures;
+ }

@@ -1,0 +1,52 @@
+diff -uNr ctcs-1.2.15/run ctcs-1.2.15.foo/run
+--- ctcs-1.2.15/run	Wed Nov  8 17:46:53 2000
++++ ctcs-1.2.15.foo/run	Mon Jan  7 18:29:17 2002
+@@ -20,6 +20,7 @@
+ use lib 'lib/perl';
+ use POSIX;
+ use POSIX qw(:signal_h :errno_h :sys_wait_h);
++use Sys::Syslog;
+ 
+ # this is my hacked up color library.  Eventually run should use
+ # curses directly.
+@@ -411,6 +412,8 @@
+ 	my $current_next_check=$current_check_every;
+ 	my $autoexit_check_every=20;
+ 	my $autoexit_next_check=$autoexit_check_every;
++	my $next_pulse_time = 0;
++	my $pulse_interval = 6; # 1 unit of time = 10 secs.  Why, I don't know.
+ 	
+ 	if (defined(POSIX::nice(-10))) {
+ 		++$nice;
+@@ -434,6 +437,13 @@
+ 		# this should reduce overhead in the checking area by close to 95%
+ 		if ($current_time >= $current_next_check) {
+ 			$current_next_check = $current_time + $current_check_every;
++
++			# Calculate whether heartbeat msg should be printed
++			if ($current_time >= $next_pulse_time) {
++			    $next_pulse_time = $current_time + $pulse_interval;
++			    syslog ("info", "Heartbeat: " . sectotime($current_time));
++			}
++			    
+ 			if (!$notified
+ 			  && defined($environment{"notify_message"})
+ 			  && $current_time >= $environment{"notify"}) {
+@@ -964,8 +974,14 @@
+ # START
+ #
+ 
+-if($#ARGV == -1) {
+-	main(("-"));
++if($#ARGV == -1) {    
++    openlog ("Cerberus", "", "local7");
++#    setlogmask ("debug");
++    main(("-"));
++    closelog();
+ } else {
+-	main(@ARGV);
++    openlog("Cerberus", "", "local7");
++#    setlogmask ("debug");
++    main(@ARGV);
++    closelog();
+ }

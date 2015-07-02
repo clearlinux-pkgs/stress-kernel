@@ -1,0 +1,80 @@
+--- iotest30/IOtest.c.stock	Sun Sep 26 19:20:04 1999
++++ iotest30/IOtest.c	Thu Jan 30 14:26:45 2003
+@@ -829,13 +829,21 @@
+ 	blocks = blocks + 10000;
+ #ifdef _LARGEFILE64_SOURCE
+ 	if ((lseek64((int) fd, (off64_t) (blocks * 512), SEEK_SET) < 0)) {
+-	    printf("lseek64 failed\n");
+-	    exit(EXIT_FAILURE);
++	    if (errno == EINVAL) {	  /* The offset is beyond the end of the device */ 
++		break;
++	    } else {
++		perror("lseek64 failed");
++		exit(EXIT_FAILURE);
++	    }
+ 	}
+ #else
+ 	if ((lseek((int) fd, (blocks * 512), SEEK_SET) < 0)) {
+-	    printf("lseek failed\n");
+-	    exit(EXIT_FAILURE);
++	    if (errno == EINVAL) {	  /* The offset is beyond the end of the device */
++		break;
++	    } else {
++		perror("lseek failed");
++		exit(EXIT_FAILURE);
++	    }
+ 	}
+ #endif
+ 	chars = (int) read(fd, rbuf, 512);	/* Attempt read */
+@@ -854,13 +862,21 @@
+ 	blocks = blocks + 100;
+ #ifdef _LARGEFILE64_SOURCE
+ 	if ((lseek64(fd, (off64_t) (blocks * 512), SEEK_SET) < 0)) {
+-	    printf("lseek64 failed\n");
+-	    exit(EXIT_FAILURE);
++	    if (errno == EINVAL) {	  /* The offset is beyond the end of the device */
++		break;
++	    } else {
++		perror("lseek64 failed");
++		exit(EXIT_FAILURE);
++	    }
+ 	}
+ #else
+ 	if ((lseek(fd, (blocks * 512), SEEK_SET) < 0)) {
+-	    printf("lseek failed\n");
+-	    exit(EXIT_FAILURE);
++	    if (errno == EINVAL) {	  /* The offset is beyond the end of the device */
++		break;
++	    } else {
++		perror("lseek failed");
++		exit(EXIT_FAILURE);
++	    }
+ 	}
+ #endif
+ 	chars = (int) read(fd, rbuf, 512);	/* Attempt read */
+@@ -877,13 +893,21 @@
+ 	blocks = blocks + 1;
+ #ifdef _LARGEFILE64_SOURCE
+ 	if ((lseek64(fd, (off64_t) (blocks * 512), SEEK_SET) < 0)) {	/* Set Pointer */
+-	    printf("lseek64 failed\n");
+-	    exit(EXIT_FAILURE);
++	    if (errno == EINVAL) {	  /* The offset is beyond the end of the device */
++		break;
++	    } else {
++		perror("lseek64 failed");
++		exit(EXIT_FAILURE);
++	    }
+ 	}
+ #else
+ 	if ((lseek(fd, (blocks * 512), SEEK_SET) < 0)) {	/* Set Pointer */
+-	    printf("lseek failed\n");
+-	    exit(EXIT_FAILURE);
++	    if (errno == EINVAL) {	  /* The offset is beyond the end of the device */
++		break;
++	    } else {
++		perror("lseek failed");
++		exit(EXIT_FAILURE);
++	    }
+ 	}
+ #endif
+ 	chars = (int) read(fd, rbuf, 512);	/* Attempt read */

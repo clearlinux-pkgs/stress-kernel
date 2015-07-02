@@ -1,0 +1,11 @@
+--- ttcp/ttcp.c.foo	Wed Mar 21 17:58:27 2001
++++ ttcp/ttcp.c	Wed Mar 21 17:59:08 2001
+@@ -40,6 +40,8 @@
+ #endif
+ 
+ #include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
+ #include <signal.h>
+ #include <ctype.h>
+ #include <errno.h>

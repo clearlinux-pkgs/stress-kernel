@@ -1,0 +1,22 @@
+diff -uNr ctcs-1.2.15/runin/src/ltp/Makefile ctcs-1.2.15.ia64/runin/src/ltp/Makefile
+--- ctcs-1.2.15/runin/src/ltp/Makefile	Thu Oct 11 00:26:41 2001
++++ ctcs-1.2.15.ia64/runin/src/ltp/Makefile	Thu Oct 11 00:27:40 2001
+@@ -4,8 +4,8 @@
+ 
+ all: libltp.a
+ 	@$(MAKE) -C doio $@
+-	@$(MAKE) -C tests $@
+-	@$(MAKE) -C pan $@
++#	@$(MAKE) -C tests $@
++#	@$(MAKE) -C pan $@
+ 
+ libltp.a:
+ 	@$(MAKE) -C lib $@
+@@ -13,5 +13,5 @@
+ clean:
+ 	@$(MAKE) -C lib $@
+ 	@$(MAKE) -C doio $@
+-	@$(MAKE) -C tests $@
+-	@$(MAKE) -C pan $@
++#	@$(MAKE) -C tests $@
++#	@$(MAKE) -C pan $@

@@ -1,0 +1,16 @@
+diff -uNr ctcs-1.2.15/runin/dummy_fail.sh ctcs.foo/runin/dummy_fail.sh
+--- ctcs-1.2.15/runin/dummy_fail.sh	Wed Dec 31 19:00:00 1969
++++ ctcs.foo/runin/dummy_fail.sh	Tue Jan 15 14:54:21 2002
+@@ -0,0 +1,4 @@
++#!/bin/bash
++echo "Dummy fail"
++sleep 2
++exit 1
+diff -uNr ctcs-1.2.15/runin/dummy_succeed.sh ctcs.foo/runin/dummy_succeed.sh
+--- ctcs-1.2.15/runin/dummy_succeed.sh	Wed Dec 31 19:00:00 1969
++++ ctcs.foo/runin/dummy_succeed.sh	Tue Jan 15 14:54:21 2002
+@@ -0,0 +1,4 @@
++#!/bin/sh
++echo "Dummy success"
++sleep 2
++exit 0

@@ -1,0 +1,16 @@
+diff -uNr dt.d/dtgen.c dt.d.hacked/dtgen.c
+--- dt.d/dtgen.c	Sat Jan 22 16:52:18 2000
++++ dt.d.hacked/dtgen.c	Fri Aug 25 16:02:10 2000
+@@ -423,7 +423,11 @@
+     }
+ #else /* !defined(_QNX_SOURCE) */
+     if ( (stdout_flag == FALSE) &&
+-	 (dip->di_dtype->dt_dtype != DT_TAPE) ) {
++#if defined(__linux__)
++	 (dip->di_dtype->dt_dtype != DT_TAPE) && (dip->di_dtype->dt_dtype != DT_FIFO) ) {
++#else
++      (dip->di_dtype->dt_dtype != DT_TAPE) ) {
++#endif
+ 	if ((status = fsync (fd)) < 0) { /* Force data to disk. */
+ 	    report_error ("fsync", FALSE);
+ 	}

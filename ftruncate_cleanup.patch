@@ -1,0 +1,29 @@
+diff -uNr fs/truncate.c fs-foo/truncate.c
+--- fs/truncate.c	Tue Nov 27 11:44:32 2001
++++ fs-foo/truncate.c	Tue Nov 27 14:38:28 2001
+@@ -15,13 +15,13 @@
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <unistd.h>
++#include <string.h>
++#include <stdlib.h>
+ 
+-
+-main (int argc, char * argv []) 
++int main (int argc, char * argv []) 
+ {
+   int fd;
+   off_t pos;
+-  char buf [100];
+   struct stat *stat_buf = (struct stat *) malloc (sizeof (struct stat));
+ 
+   if (argc != 3) {
+@@ -48,7 +48,7 @@
+     }
+     
+     if (stat_buf->st_size != (off_t) pos) {
+-      printf ("file size = %d is wrong after ftruncate\n", pos);
++      printf ("file size = %x is wrong after ftruncate\n", (int) pos);
+       perror ("ftruncate or stat : ");
+       return 1;
+     }

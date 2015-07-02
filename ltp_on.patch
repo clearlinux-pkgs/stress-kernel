@@ -1,0 +1,208 @@
+diff -uNr drivers/ltp-driver.sh drivers-foo/ltp-driver.sh
+--- drivers/ltp-driver.sh	Wed Dec 31 19:00:00 1969
++++ drivers-foo/ltp-driver.sh	Wed Nov 14 14:39:07 2001
+@@ -0,0 +1,146 @@
++#
++# Driver for SGI's Linux Test Project executables
++#
++############################################
++#
++#  Copyright 2001, Red Hat, Inc., all rights reserved.
++#
++#  Author:  Bob Matthews <bmatthews@redhat.com>
++#
++#  This program is free software; you can redistribute it and/or modify
++#  it under the terms of the GNU General Public License as published by
++#  the Free Software Foundation; either version 2 of the License, or
++#  (at your option) any later version.
++#
++#  This program is distributed in the hope that it will be useful,
++#  but WITHOUT ANY WARRANTY; without even the implied warranty of
++#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++#  GNU General Public License for more details.
++#
++#  You should have received a copy of the GNU General Public License
++#  along with this program; if not, write to the Free Software
++#  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++#
++#
++
++#
++# I hate this too, but we're stuck with the way ctcs packages its builtin
++# tests.
++#
++LTP_HOME_DIR=`pwd`/src/ltp/tests
++
++#
++# New tests added to LTP should be listed here.  We don't do ulimit; it
++# doesn't exist in Linux.
++#
++TEST_NAMES="access01 \
++    access03 \
++    alarm01 \
++    alarm02 \
++    alarm03 \
++    asyncio02 \
++    chdir02 \
++    chmod02 \
++    chown01 \
++    close08 \
++    creat09 \
++    dup01 \
++    dup02 \
++    dup03 \
++    dup04 \
++    dup05 \
++    execl01 \
++    execle01 \
++    execlp01 \
++    execv01 \
++    execve01 \
++    execvp01 \
++    f00f \
++    fchmod01 \
++    fchown01 \
++    fcntl02 \
++    fcntl03 \
++    fcntl04 \
++    fcntl05 \
++    fcntl07 \
++    fcntl07B \
++    fcntl08 \
++    fcntl09 \
++    fcntl10 \
++    fork01 \
++    fork04 \
++    fork05 \
++    fpathconf01 \
++    fstat01 \
++    fsync01 \
++    getegid01 \
++    geteuid01 \
++    getgid01 \
++    getgroups01 \
++    getgroups02 \
++    gethostid01 \
++    gethostname01 \
++    getpgrp01 \
++    getpid01 \
++    getppid01 \
++    getuid01 \
++    kill09 \
++    link02 \
++    link03 \
++    link04 \
++    link05 \
++    lseek01 \
++    lseek02 \
++    lseek04 \
++    lseek05 \
++    lstat02 \
++    mkdir01 \
++    mkdir08 \
++    mknod01 \
++    mmap001 \
++    nice05 \
++    open03 \
++    pathconf01 \
++    pause01 \
++    readlink02 \
++    rename02 \
++    rmdir04 \
++    sbrk01 \
++    select01 \
++    setgid01 \
++    setgroups01 \
++    setpgid01 \
++    setregid01 \
++    setreuid01 \
++    setuid01 \
++    setuid02 \
++    stat05 \
++    symlink01 \
++    symlink02 \
++    sync01 \
++    time01 \
++    times01 \
++    umask01 \
++    uname01 \
++    unlink05 \
++    unlink06 \
++    unlink07 \
++    wait02 \
++    write01"
++
++#
++# Go to test dir
++#
++cd $LTP_HOME_DIR
++[ $? = 0 ] || { echo "Can't cd to $LTP_HOME_DIR" ; exit 1 ; }
++
++echo $TEST_NAMES
++# 
++# Loop through tests, checking return value of each.
++#
++for TEST in $TEST_NAMES ; do
++    ./$TEST
++    [ $? = 0 ] || { echo "LTP test $TEST failed with error code $?." ; exit 1 ; }
++done
++
++exit 0
+diff -uNr misc/hell-hound.sh misc-foo/hell-hound.sh
+--- misc/hell-hound.sh	Thu Nov  8 11:07:13 2001
++++ misc-foo/hell-hound.sh	Wed Nov 14 14:46:12 2001
+@@ -58,6 +58,7 @@
+ FS="no"
+ CRASHME="no"
+ RAWIO="no"
++LTP="no"
+ 
+ #Calc total available memory
+ PMEM_KB=`cat /proc/meminfo | grep '^MemTotal:' | sed 's/^[^0-9]*\([0-9]*\).*/\1/'`
+@@ -110,6 +111,7 @@
+ FS_MEM=352
+ CRASHME_MEM=1
+ RAWIO_MEM=50
++LTP_MEM=4
+ 
+ #
+ # SCSI dialogue
+@@ -269,6 +271,16 @@
+ } ; fi
+ 
+ echo
++
++QUESTION="Do you want to run the LTP tests?"; DEFAULT_ANS="yes"; yn
++LTP=$ANSWER_YN
++if [ $LTP = "yes" ] ; then {
++    echo "LTP tests will be run."
++} ; else {
++    echo "LTP tests will be skipped."
++} ; fi
++
++echo
+ # 
+ # Create the driver file
+ #
+@@ -353,6 +365,13 @@
+ MEM_CEILING=`expr "$MEM_CEILING" - "$RAWIO_MEM"`
+ } ; fi
+ 
++if [ $LTP = "yes" ] ; then {
++    cat >> $CTCS_DRIVER_FILE<<EOF
++bg 2048 LTP ltp-driver.sh
++EOF
++MEM_CEILING=`expr "$MEM_CEILING" - "$LTP_MEM"`
++} ; fi
++
+ if [ $MEMORY = "yes" ] ; then {
+    
+     if [ "$MEM_CEILING" -le 0 ] ; then {
+@@ -397,6 +416,7 @@
+ if [ $FS = "yes" ] ; then { echo "  File system ops"; } ; fi
+ if [ $CRASHME = "yes" ] ; then { echo "  Crashme"; } ; fi
+ if [ $RAWIO = "yes" ] ; then { echo "  Raw IO"; } ; fi
++if [ $LTP = "yes" ] ; then { echo "  LTP tests"; } ; fi
+ echo
+ 
+ QUESTION="Proceed?"; DEFAULT_ANS="yes"; yn

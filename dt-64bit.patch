@@ -1,0 +1,11 @@
+--- dt.d/dt.h.foo	Wed Mar 21 17:54:15 2001
++++ dt.d/dt.h	Wed Mar 21 17:54:33 2001
+@@ -404,7 +404,7 @@
+ 
+ #else /* !defined(__alpha) */
+ 
+-typedef unsigned int		ptr_t;
++typedef unsigned long		ptr_t;
+ #if !defined(OSFMK)
+ typedef int			int32;
+ #endif /* !defined(OSFMK) */
