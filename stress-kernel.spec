@@ -4,7 +4,7 @@ Name: stress-kernel
 %define addon_version 0.9
 
 Version: %{ctcs_version}
-Release: 16.3
+Release: 17
 
 Obsoletes: ttcp
 
@@ -12,7 +12,6 @@ Summary: A suite of tools designed to stress the Linux kernel to expose bugs.
 Group: Applications/System
 
 License: GPL-2.0
-Requires: psmisc, bash, bc, bzip2, sh-utils, kernel-source, sed, fileutils, textutils, diffutils, mount, e2fsprogs, util-linux, shadow-utils, nfs-utils
 
 Source0: http://prdownloads.sourceforge.net/va-ctcs/ctcs-%{ctcs_version}.tar.gz
 Patch0: ctcs-nox86.patch
