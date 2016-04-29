@@ -4,7 +4,7 @@ Name: stress-kernel
 %define addon_version 0.9
 
 Version: %{ctcs_version}
-Release: 19
+Release: 20
 
 Obsoletes: ttcp
 
