@@ -4,7 +4,7 @@ Name: stress-kernel
 %define addon_version 0.9
 
 Version: %{ctcs_version}
-Release: 21
+Release: 22
 
 Obsoletes: ttcp
 
@@ -194,8 +194,8 @@ rm -rf $RPM_BUILD_ROOT/var/autoreportctcs/admins
 #
 %files
 %attr(755,root,root) /usr/bin/ctcs
-%attr(744,root,root) /var/autoreportctcs
-%config(noreplace) /var/autoreportctcs/configs/admins
+%exclude  /var/autoreportctcs
+%exclude  /var/autoreportctcs/configs/admins
 
 %preun
 CTCS_BASE=${RPM_INSTALL_PREFIX}/usr/bin/ctcs
